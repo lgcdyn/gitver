@@ -45,14 +45,6 @@ jobs:
           dev_version="${{ github.event.inputs.project_id }}-${{ github.event.inputs.version }}-${{ github.event.inputs.stage }}-b${{ steps.buildnum.outputs.build_number }}-${{ steps.date.outputs.date }}"
           echo "dev_version=$dev_version" >> $GITHUB_OUTPUT
 
-      - name: Ensure CHANGELOG.md exists
-        run: |
-          if [ ! -f CHANGELOG.md ]; then
-            echo "# 📑 Changelog" > CHANGELOG.md
-            echo "" >> CHANGELOG.md
-            echo "## [Unreleased]" >> CHANGELOG.md
-          fi
-
       - name: Commit changes
         run: |
           git add CHANGELOG.md BUILD_NUMBER
