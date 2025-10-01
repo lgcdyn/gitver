@@ -1,0 +1,56 @@
+on:
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: 'Release stage (alpha, beta, rc, release)'
+        required: true
+        default: 'release'
+      version:
+        description: 'Developer version (X.Y.Z)'
+        required: true
+      project_id:
+        description: 'Project identifier'
+        required: true
+        default: 'PRJX'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+
+      - name: Load and increment build number
+        id: buildnum
+        run: |
+          if [ ! -f BUILD_NUMBER ]; then echo 0 > BUILD_NUMBER; fi
+          build=$(cat BUILD_NUMBER)
+          build=$((build+1))
+          echo $build > BUILD_NUMBER
+          echo "build_number=$build" >> $GITHUB_OUTPUT
+
+      - name: Get current date
+        id: date
+        run: echo "date=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
+
+      - name: Construct Developer Version
+        id: version
+        run: |
+          dev_version="${{ github.event.inputs.project_id }}-${{ github.event.inputs.version }}-${{ github.event.inputs.stage }}-b${{ steps.buildnum.outputs.build_number }}-${{ steps.date.outputs.date }}"
+          echo "dev_version=$dev_version" >> $GITHUB_OUTPUT
+
+      - name: Update CHANGELOG.md
+        run: |
+          sed -i "0,/\[Unreleased\]/s//[Unreleased]\n\n## ${{ steps.version.outputs.dev_version }}/" CHANGELOG.md
+
+      - name: Commit changes
+        run: |
+          git add CHANGELOG.md BUILD_NUMBER
+          git commit -m "chore: release ${{ steps.version.outputs.dev_version }}"
+          git push
