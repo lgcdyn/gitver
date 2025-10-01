@@ -11,7 +11,7 @@ on:
       project_id:
         description: 'Project identifier'
         required: true
-        default: 'PRJX'
+        default: 'gitver'
 
 jobs:
   release:
