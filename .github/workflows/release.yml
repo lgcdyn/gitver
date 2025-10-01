@@ -45,9 +45,13 @@ jobs:
           dev_version="${{ github.event.inputs.project_id }}-${{ github.event.inputs.version }}-${{ github.event.inputs.stage }}-b${{ steps.buildnum.outputs.build_number }}-${{ steps.date.outputs.date }}"
           echo "dev_version=$dev_version" >> $GITHUB_OUTPUT
 
-      - name: Update CHANGELOG.md
+      - name: Ensure CHANGELOG.md exists
         run: |
-          sed -i "0,/\[Unreleased\]/s//[Unreleased]\n\n## ${{ steps.version.outputs.dev_version }}/" CHANGELOG.md
+          if [ ! -f CHANGELOG.md ]; then
+            echo "# 📑 Changelog" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            echo "## [Unreleased]" >> CHANGELOG.md
+          fi
 
       - name: Commit changes
         run: |
